@@ -1,0 +1,7 @@
+cryptography==3.4.7
+Flask==1.1.2
+Flask-MySQL==1.5.1
+PyMySQL==0.10.0
+pandas==1.2.4
+Flask-CORS==3.0.10
+uWSGI==2.0.17.1
