@@ -3,6 +3,7 @@ from app import app
 from db import mysql
 from flask import jsonify, request
 from flask_cors import cross_origin
+import rest_utils
 
 
 @app.route("/api")
@@ -67,19 +68,36 @@ def getAShare():
     return resp
 
 
-@app.route("/api/index-constituents")
+@app.route("/api/synthethic-table")
 @cross_origin()
-def indexConstituents():
+def syntheticTable():
     query_parameters = request.args
     date = query_parameters.get("date")
-    indexCode = query_parameters.get("indexCode")
+    endDate = rest_utils.createEndDate(str(date))
 
-    query = "select instrument as `name`, `Gross Market Capitalisation` as value from `index_constituents`"
+    indexName = str(query_parameters.get("indexName"))
+    indexCode = str(query_parameters.get("indexCode"))
 
-    if date:
-        query += " where date='{0}'".format(date)
-    if indexCode:
-        query += " AND `{0} New` is not null".format(indexCode)
+    query = """SELECT ic.instrument,
+    ic.date,
+    beta.beta,
+    beta.`Total Risk` AS market_volatility,
+    beta.`Unique Risk` AS specific_volatility,
+    ic.`Gross Market Capitalisation`/ (SELECT SUM(`Gross Market Capitalisation`) FROM `index_constituents`
+    WHERE beta.date BETWEEN "{0}" AND "{1}"
+    AND ic.date BETWEEN "{0}" AND "{1}"
+    AND `{2} New` IS NOT NULL
+    ) AS weights
+    FROM `index_constituents` AS ic
+    LEFT JOIN `ba_beta_output` AS beta
+    ON beta.instrument = ic.alpha
+    WHERE beta.date BETWEEN "{0}" AND "{1}"
+    AND ic.date BETWEEN "{0}" AND "{1}"
+    AND ic.`{2} New` IS NOT NULL
+    AND beta.index = "{3}"
+    """.format(
+        date, endDate, indexName, indexCode
+    )
 
     conn = mysql.connect()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -87,6 +105,7 @@ def indexConstituents():
     results = cursor.fetchall()
 
     resp = jsonify(results)
+
     resp.status_code = 200
 
     return resp
