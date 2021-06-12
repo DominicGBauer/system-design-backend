@@ -1,63 +1,79 @@
 import numpy as np
+import pandas as pd
 import calendar
 
 
-def calculatePortfolioBeta(weightsList: list, betasList: list):
-    weights = np.array(weightsList)
-    weightsTranspose = np.transpose(weights)
-    betas = np.array(betasList)
-    portfolioBeta = weightsTranspose * betas
+def calculatePortfolioBeta(weights: list, betas: list) -> float:
+    portfolioBeta = np.dot(weights, betas)
+
     return portfolioBeta
 
 
-def calculateSystematicCovariance(betasList: list):
-    betas = np.array(betasList)
-    betasTranspose = np.transpose(betas)
-    m = 0
-    systematicCovarianceMatrix = betas * betasTranspose * m ^ 2
-    return systematicCovarianceMatrix
+def calculateSystematicCovarianceMatrix(
+    betas: list, marketVolatility: float
+) -> np.ndarray:
+    betasColumn = np.array(np.array(betas)[np.newaxis, :])
+    betasRow = betasColumn.transpose()
 
-
-def calculatePortfolioSystematicVariance(weightsList: list, betasList: list):
-    weights = np.array(weightsList)
-    weightsTranspose = np.transpose(weightsList)
-    betas = np.array(betasList)
-    betasTranspose = np.transpose(betasList)
-    m = 0
-    portfolioSystematicVariance = (
-        weightsTranspose * betas * betasTranspose * weights * m ^ 2
+    systematicCovarianceMatrixMatrix = (
+        np.matmul(betasRow, betasColumn) * marketVolatility ** 2
     )
-    return portfolioSystematicVariance
+
+    return systematicCovarianceMatrixMatrix
 
 
-def calculateSpecificCovariance(specificVolatility: list):
-    specificVolatilitySquared = np.diag(specificVolatility) ^ 2
+def calculateSpecificCovarianceMatrix(specificVolatility: list) -> np.ndarray:
+    specificVolatilitySquared = np.diag(np.square(np.array(specificVolatility)))
     return specificVolatilitySquared
 
 
-def calculatePortfolioSpecificVariance(weightsList: list, specificVolatility: list):
-    weights = np.array(weightsList)
-    weightsTranspose = np.transpose(weights)
-    specificVolatilitySquared = calculateSpecificCovariance(specificVolatility)
-    portfolioSpecificVariance = weightsTranspose * specificVolatilitySquared * weights
+def calculatePortfolioSystematicVariance(
+    weights: list, betas: list, marketVolatility: float
+) -> float:
+    weightsTranspose = np.array(weights).transpose()
+    betasTranspose = np.array(betas).transpose()
+    portfolioSystematicVariance = np.dot(
+        np.matmul(weightsTranspose, betas) * (np.matmul(betasTranspose, weights)),
+        (marketVolatility ** 2),
+    )
+
+    return portfolioSystematicVariance
+
+
+def calculatePortfolioSpecificVariance(
+    weights: list, specificVolatility: list
+) -> float:
+    weightsColumn = np.array(np.array(weights)[np.newaxis, :])
+    weightsRow = weightsColumn.transpose()
+    specificVolatilitySquared = calculateSpecificCovarianceMatrix(specificVolatility)
+    portfolioSpecificVariance = np.matmul(
+        weightsColumn, np.matmul(specificVolatilitySquared, weightsRow)
+    )
+
     return portfolioSpecificVariance
 
 
-def calculateTotalCovariance(systematicCovariance, specificCovariance):
-    totalCovariance = systematicCovariance + specificCovariance
-    return totalCovariance
+def calculateTotalCovarianceMatrix(
+    systematicCovarianceMatrix: np.ndarray, specificCovarianceMatrix: np.ndarray
+) -> np.ndarray:
+    totalCovarianceMatrix = systematicCovarianceMatrix + specificCovarianceMatrix
+
+    return totalCovarianceMatrix
 
 
 def calculatePortfolioVariance(
-    portfolioSystematicCovariance, portfolioSpecificCovariance
-):
-    portfolioVariance = portfolioSystematicCovariance + portfolioSpecificCovariance
+    portfolioSystematicVariance: float, portfolioSpecificVariance: float
+) -> float:
+    portfolioVariance = portfolioSystematicVariance + portfolioSpecificVariance
+
     return portfolioVariance
 
 
-def calculateCorrelationMatrix(weightsList: list, betasList: list):
-    weights = np.array(weightsList)
-    betas = np.array(betasList)
+def calculateCorrelationMatrix(totalCovarianceMatrix: np.ndarray) -> np.ndarray:
+    D = np.diag(np.sqrt(np.diag(totalCovarianceMatrix)))
+    inverseD = np.linalg.inv(D)
+    correlationMatrix = np.matmul(np.matmul(inverseD, totalCovarianceMatrix), inverseD)
+    return correlationMatrix
 
 
 def getLastDayOfMonth(date) -> int:
@@ -82,23 +98,25 @@ def calculateStatistics(
         weights,
         betas,
     )
-    systematicCovariance = calculateSystematicCovariance(betas)
+    systematicCovarianceMatrix = calculateSystematicCovarianceMatrix(betas)
     portfolioSystematicVariance = calculatePortfolioSystematicVariance(weights, betas)
-    specificCovariance = calculateSpecificCovariance(specificVolatility)
+    specificCovarianceMatrix = calculateSpecificCovarianceMatrix(specificVolatility)
     portfolioSpecificVariance = calculatePortfolioSpecificVariance(
         weights, specificVolatility
     )
-    totalCovariance = calculateTotalCovariance(systematicCovariance, specificCovariance)
+    totalCovarianceMatrix = calculateTotalCovarianceMatrix(
+        systematicCovarianceMatrix, specificCovarianceMatrix
+    )
     portfolioVariance = calculatePortfolioVariance(
         portfolioSystematicVariance, portfolioSpecificVariance
     )
 
     return (
         portfolioBeta,
-        specificCovariance,
-        systematicCovariance,
+        specificCovarianceMatrix,
+        systematicCovarianceMatrix,
         portfolioSpecificVariance,
         portfolioSystematicVariance,
-        totalCovariance,
+        totalCovarianceMatrix,
         portfolioVariance,
     )
