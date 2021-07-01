@@ -37,7 +37,7 @@ def calculatePortfolioSystematicVariance(
         (marketVolatility ** 2),
     )
 
-    return portfolioSystematicVariance
+    return np.asscalar(portfolioSystematicVariance)
 
 
 def calculatePortfolioSpecificVariance(
@@ -50,7 +50,7 @@ def calculatePortfolioSpecificVariance(
         weightsColumn, np.matmul(specificVolatilitySquared, weightsRow)
     )
 
-    return portfolioSpecificVariance
+    return np.asscalar(portfolioSpecificVariance)
 
 
 def calculateTotalCovarianceMatrix(
@@ -93,13 +93,18 @@ def calculateStatistics(
     betas: list,
     weights: list,
     specificVolatility: list,
+    marketVolatility: list,
 ):
     portfolioBeta = calculatePortfolioBeta(
         weights,
         betas,
     )
-    systematicCovarianceMatrix = calculateSystematicCovarianceMatrix(betas)
-    portfolioSystematicVariance = calculatePortfolioSystematicVariance(weights, betas)
+    systematicCovarianceMatrix = calculateSystematicCovarianceMatrix(
+        betas, marketVolatility
+    )
+    portfolioSystematicVariance = calculatePortfolioSystematicVariance(
+        weights, betas, marketVolatility
+    )
     specificCovarianceMatrix = calculateSpecificCovarianceMatrix(specificVolatility)
     portfolioSpecificVariance = calculatePortfolioSpecificVariance(
         weights, specificVolatility
@@ -110,6 +115,7 @@ def calculateStatistics(
     portfolioVariance = calculatePortfolioVariance(
         portfolioSystematicVariance, portfolioSpecificVariance
     )
+    correlationMatrix = calculateCorrelationMatrix(totalCovarianceMatrix)
 
     return (
         portfolioBeta,
@@ -119,4 +125,5 @@ def calculateStatistics(
         portfolioSystematicVariance,
         totalCovarianceMatrix,
         portfolioVariance,
+        correlationMatrix,
     )
