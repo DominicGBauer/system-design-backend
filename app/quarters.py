@@ -3,7 +3,6 @@ from app import app
 from db import mysql
 from flask import jsonify
 from flask_cors import cross_origin
-import pandas as pd
 from flask.json import JSONEncoder
 from datetime import date
 
@@ -39,7 +38,6 @@ def getDates():
     results = cursor.fetchall()
 
     resp = jsonify(results)
-    print(results)
     resp.status_code = 200
 
     return resp

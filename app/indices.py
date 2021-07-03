@@ -3,7 +3,6 @@ from app import app
 from db import mysql
 from flask import jsonify, request
 from flask_cors import cross_origin
-import pandas as pd
 
 
 @app.route("/api/index")
