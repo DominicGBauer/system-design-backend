@@ -3,7 +3,7 @@ from app import app
 from db import mysql
 from flask import jsonify, request
 from flask_cors import cross_origin
-import rest_utils
+from rest_utils import createEndDate, calculateStatistics
 import pandas as pd
 
 
@@ -12,7 +12,7 @@ import pandas as pd
 def syntheticTable():
     query_parameters = request.args
     date = query_parameters.get("date")
-    endDate = rest_utils.createEndDate(str(date))
+    endDate = createEndDate(str(date))
 
     indexName = str(query_parameters.get("indexName"))
     indexCode = str(query_parameters.get("indexCode"))
@@ -20,6 +20,8 @@ def syntheticTable():
     query = """SELECT ic.instrument,
     ic.date,
     beta.beta,
+    beta.instrument as code,
+    beta.`p-Value Beta` as p_value,
     beta.`Total Risk` AS market_volatility,
     beta.`Unique Risk` AS specific_volatility,
     ic.`Gross Market Capitalisation`/ (SELECT SUM(`Gross Market Capitalisation`) FROM `index_constituents`
@@ -37,6 +39,8 @@ def syntheticTable():
     SELECT instrument,
     date,
     beta,
+    `Data Points`,
+    `p-Value Beta`,
     `Total Risk` AS market_volatility,
     `Unique Risk` AS specific_volatility,
     alpha
@@ -66,7 +70,7 @@ def syntheticTable():
         totalCovarianceMatrix,
         portfolioVariance,
         correlationMatrix,
-    ) = rest_utils.calculateStatistics(
+    ) = calculateStatistics(
         df["beta"], df["weights"], df["specific_volatility"], marketVolatility
     )
 

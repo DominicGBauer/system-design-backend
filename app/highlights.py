@@ -12,11 +12,15 @@ def getDatesForHighlight():
     share = query_parameters.get("share")
     limit = query_parameters.get("daysInQuarter")
 
-    query = "select `date` as name, price as value from equity_data"
-
-    if share:
-        query += " where instrument='{0}' order by `date` desc".format(share)
-        query += " limit {0}".format(limit)
+    query = """
+    SELECT `date` AS name, price AS value
+    FROM equity_data
+    WHERE instrument='{0}'
+    ORDER BY `date` DESC
+    LIMIT {1}
+    """.format(
+        share, limit
+    )
 
     conn = mysql.connect()
     cursor = conn.cursor(pymysql.cursors.DictCursor)
