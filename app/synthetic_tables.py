@@ -27,7 +27,7 @@ def syntheticTable():
     ic.`Gross Market Capitalisation`/ (SELECT SUM(`Gross Market Capitalisation`) FROM `index_constituents`
     WHERE date BETWEEN "{0}" AND "{1}"
     AND `{2} New` = "{2}"
-    ) AS weights
+    ) * 100 AS weights
     FROM `index_constituents` AS ic
     LEFT JOIN `ba_beta_output` AS beta
     ON beta.instrument = ic.alpha

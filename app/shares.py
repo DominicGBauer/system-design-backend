@@ -65,7 +65,7 @@ def getShareInformation(share):
     bo.`Index` AS `index`,
     bo.beta AS beta,
     bo.`p-Value Beta` AS p_value,
-    bo.`R2` AS r_squared,
+    round(bo.`R2` * 100, 2) AS r_squared,
     iclass.`Super Sector` AS super_sector ,
     iclass.`Sub-Sector` AS sub_sector,
     iclass.`Sector` AS sector
