@@ -16,7 +16,7 @@ def getIndex():
 
     query = """SELECT
             instrument AS name,
-            `Gross Market Capitalisation` AS value
+            `Gross Market Capitalisation`/100 AS value
             FROM `index_constituents`
             WHERE `{0} New` = "{0}"
             AND date BETWEEN'{1}' AND '{2}'
@@ -46,7 +46,7 @@ def getIndexSubSector():
 
     query = """SELECT
             iclass.`Super Sector` AS name,
-            SUM(ic.`Gross Market Capitalisation`) AS value
+            SUM(ic.`Gross Market Capitalisation`)/100 AS value
             FROM `index_constituents` AS ic
             left join `industry_classification` AS iclass
             ON ic.`ICB Sub-Sector`= iclass.`Sub-Sector Code`

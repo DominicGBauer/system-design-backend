@@ -11,7 +11,7 @@ from rest_utils import createEndDate
 def getShare(share):
     query = """
     SELECT `date` AS name,
-    price AS value
+    price/100 AS value
     FROM equity_data
     WHERE instrument='{0}'
     """.format(
@@ -92,12 +92,12 @@ def getShareInformation(share):
     return resp
 
 
-@app.route("/api/shares/<string:share>/dates")
+@app.route("/api/shares/<string:share>/available-dates")
 @cross_origin()
 def getShareDates(share):
     query = """
     SELECT DISTINCT
-    `Date` AS date
+    `Date` AS quarter
     FROM `ba_beta_output`
     WHERE instrument = '{0}'
     ORDER BY `Date` DESC
