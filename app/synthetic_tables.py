@@ -17,7 +17,7 @@ def syntheticTable():
     indexName = str(query_parameters.get("indexName"))
     indexCode = str(query_parameters.get("indexCode"))
 
-    query = """SELECT ic.instrument,
+    query = """SELECT beta.alpha,
     ic.date,
     beta.beta,
     beta.instrument as code,
@@ -27,7 +27,7 @@ def syntheticTable():
     ic.`Gross Market Capitalisation`/ (SELECT SUM(`Gross Market Capitalisation`) FROM `index_constituents`
     WHERE date BETWEEN "{0}" AND "{1}"
     AND `{2} New` = "{2}"
-    ) * 100 AS weights
+    ) AS weights
     FROM `index_constituents` AS ic
     LEFT JOIN `ba_beta_output` AS beta
     ON beta.instrument = ic.alpha
@@ -35,8 +35,10 @@ def syntheticTable():
     AND ic.date BETWEEN "{0}" AND "{1}"
     AND ic.`{2} New` = "{2}"
     AND beta.index = "{3}"
+    AND beta.`Total Risk` != 0
+    AND beta.beta IS NOT NULL
     UNION
-    SELECT instrument,
+    SELECT alpha,
     date,
     beta,
     `Data Points`,
