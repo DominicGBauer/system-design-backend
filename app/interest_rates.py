@@ -16,8 +16,8 @@ def getInterestRates():
             `Date` as name,
             ROUND(Rate * 100,2) as value
             FROM `interest_rate_data`
-            WHERE `Tenor` = {0}
-            AND `Curve` = {1}
+            WHERE `Tenor` = '{0}'
+            AND `Curve` = '{1}'
             """.format(
         tenor, curve
     )
