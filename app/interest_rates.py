@@ -62,7 +62,7 @@ def getYieldCurve():
 
     query = """
     SELECT Tenor AS name,
-    Rate AS value
+    ROUND(Rate * 100,2) AS value
     FROM `interest_rate_data`
     WHERE `Date` = '{0}'
     AND Curve = '{1}'
